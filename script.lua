@@ -51,15 +51,21 @@ p.CharacterAdded:Connect(a)
 
 end
 
--- เช็ค HWID ว่าเคยใส่ key แล้วไหม
+-- เช็ค HWID
+local saved=false
+
 pcall(function()
 if isfile and readfile and isfile("paokuy_hwid.txt") then
 if readfile("paokuy_hwid.txt")==hwid then
-main()
-return
+saved=true
 end
 end
 end)
+
+if saved then
+main()
+return
+end
 
 -- UI
 local g=Instance.new("ScreenGui",p:WaitForChild("PlayerGui"))
@@ -119,7 +125,7 @@ w.TextColor3=Color3.fromRGB(255,0,0)
 -- Drag UI
 local UIS=game:GetService("UserInputService")
 local drag=false
-local dragInput,mousePos,framePos
+local mousePos,framePos
 
 f.InputBegan:Connect(function(input)
 if input.UserInputType==Enum.UserInputType.MouseButton1 then
@@ -142,7 +148,7 @@ f.Position=UDim2.new(framePos.X.Scale,framePos.X.Offset+delta.X,framePos.Y.Scale
 end
 end)
 
--- Animation open
+-- Animation
 f.Size=UDim2.new(0,0,0,0)
 f:TweenSize(UDim2.new(0,240,0,130),"Out","Back",0.4,true)
 
