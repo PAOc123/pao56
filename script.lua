@@ -2,6 +2,14 @@ local p=game.Players.LocalPlayer
 local key="ดาเกย์49"
 local unlocked=false
 
+-- HWID
+local hwid="unknown"
+pcall(function()
+if gethwid then
+hwid=gethwid()
+end
+end)
+
 local function main()
 
 local g2=Instance.new("ScreenGui",p:WaitForChild("PlayerGui"))
@@ -43,6 +51,16 @@ p.CharacterAdded:Connect(a)
 
 end
 
+-- เช็ค HWID ว่าเคยใส่ key แล้วไหม
+pcall(function()
+if isfile and readfile and isfile("paokuy_hwid.txt") then
+if readfile("paokuy_hwid.txt")==hwid then
+main()
+return
+end
+end
+end)
+
 -- UI
 local g=Instance.new("ScreenGui",p:WaitForChild("PlayerGui"))
 
@@ -56,14 +74,12 @@ Instance.new("UICorner",f).CornerRadius=UDim.new(0,10)
 local stroke=Instance.new("UIStroke",f)
 stroke.Color=Color3.fromRGB(80,80,80)
 
--- Gradient
 local grad=Instance.new("UIGradient",f)
 grad.Color=ColorSequence.new{
 ColorSequenceKeypoint.new(0,Color3.fromRGB(50,50,50)),
 ColorSequenceKeypoint.new(1,Color3.fromRGB(20,20,20))
 }
 
--- Title
 local title=Instance.new("TextLabel",f)
 title.Size=UDim2.new(1,0,0,30)
 title.BackgroundTransparency=1
@@ -71,7 +87,6 @@ title.Text="Paokuy Hub"
 title.TextScaled=true
 title.TextColor3=Color3.new(1,1,1)
 
--- Key box
 local b=Instance.new("TextBox",f)
 b.Size=UDim2.new(0,200,0,30)
 b.Position=UDim2.new(.5,-100,0,40)
@@ -80,7 +95,6 @@ b.BackgroundColor3=Color3.fromRGB(40,40,40)
 b.TextColor3=Color3.new(1,1,1)
 Instance.new("UICorner",b).CornerRadius=UDim.new(0,6)
 
--- Button
 local s=Instance.new("TextButton",f)
 s.Size=UDim2.new(0,200,0,30)
 s.Position=UDim2.new(.5,-100,0,75)
@@ -89,7 +103,6 @@ s.BackgroundColor3=Color3.fromRGB(50,50,50)
 s.TextColor3=Color3.new(1,1,1)
 Instance.new("UICorner",s).CornerRadius=UDim.new(0,6)
 
--- Close button
 local x=Instance.new("TextButton",f)
 x.Size=UDim2.new(0,25,0,25)
 x.Position=UDim2.new(1,-30,0,5)
@@ -97,14 +110,13 @@ x.Text="X"
 x.BackgroundTransparency=1
 x.TextColor3=Color3.fromRGB(255,80,80)
 
--- Warning
 local w=Instance.new("TextLabel",f)
 w.Size=UDim2.new(1,0,0,20)
 w.Position=UDim2.new(0,0,1,-20)
 w.BackgroundTransparency=1
 w.TextColor3=Color3.fromRGB(255,0,0)
 
--- Drag system
+-- Drag UI
 local UIS=game:GetService("UserInputService")
 local drag=false
 local dragInput,mousePos,framePos
@@ -141,6 +153,13 @@ end)
 s.MouseButton1Click:Connect(function()
 if b.Text==key then
 unlocked=true
+
+pcall(function()
+if writefile then
+writefile("paokuy_hwid.txt",hwid)
+end
+end)
+
 g:Destroy()
 main()
 else
