@@ -18,23 +18,45 @@ t.TextColor3=Color3.new(1,1,1)
 task.delay(3,function()g2:Destroy()end)
 
 local function a(c)
-task.wait(0.2) -- 🔥 กันบัคโหลดตัว
+task.wait(0.2)
 
+-- ===== HEAD =====
 local h=c:WaitForChild("Head")
 h.Transparency=1
-local f=h:FindFirstChild("face")if f then f:Destroy()end
 
+local f=h:FindFirstChild("face")
+if f then f:Destroy() end
+
+-- ลบ mesh เก่า
+for _,v in pairs(h:GetChildren())do
+if v:IsA("SpecialMesh") then v:Destroy() end
+end
+
+-- ใส่ headless
 local m=Instance.new("SpecialMesh",h)
 m.MeshType="FileMesh"
 m.MeshId="rbxassetid://1095708"
 m.Scale=Vector3.new(.001,.001,.001)
 
+-- 🔥 ล็อคหัว
+h:GetPropertyChangedSignal("Transparency"):Connect(function()
+if h.Transparency~=1 then
+h.Transparency=1
+end
+end)
+
+-- 🔥 กัน face กลับมา
+h.ChildAdded:Connect(function(v)
+if v.Name=="face" then v:Destroy() end
+end)
+
+-- ===== LEG =====
 local l=c:FindFirstChild("Right Leg")
 if l then
 l.Color=Color3.fromRGB(64,64,64)
 
 for _,v in pairs(l:GetChildren())do
-if v:IsA("SpecialMesh")then v:Destroy()end
+if v:IsA("SpecialMesh") then v:Destroy() end
 end
 
 local function apply()
