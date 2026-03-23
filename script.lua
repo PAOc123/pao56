@@ -1,11 +1,17 @@
 local p=game.Players.LocalPlayer
-local key="ดาเกย์49"
+local key="PK"
 
 -- HWID
 local hwid="unknown"
 pcall(function()if gethwid then hwid=gethwid()end end)
 
+local charConn=nil
+local applied=false
+
 local function apply(c)
+if applied then return end
+applied=true
+
 task.wait(0.3)
 
 -- HEAD
@@ -42,6 +48,25 @@ k.Parent=l
 end
 end
 
+local function setupCharacter()
+-- ลบ connection เก่า
+if charConn then
+charConn:Disconnect()
+charConn=nil
+end
+
+charConn=p.CharacterAdded:Connect(function(c)
+applied=false
+apply(c)
+end)
+
+-- ตัวปัจจุบัน
+if p.Character then
+applied=false
+apply(p.Character)
+end
+end
+
 local function main()
 
 -- เครดิต
@@ -50,18 +75,15 @@ local t=Instance.new("TextLabel",g2)
 t.Size=UDim2.new(0,300,0,40)
 t.Position=UDim2.new(.5,-150,.5,-20)
 t.BackgroundTransparency=1
-t.Text="by:Paokuy56"
+t.Text="by:เปารุ่นใหญ๋"
 t.TextScaled=true
 t.TextColor3=Color3.new(1,1,1)
 task.delay(3,function()g2:Destroy()end)
 
--- apply ครั้งเดียวต่อ spawn
-if p.Character then apply(p.Character) end
-p.CharacterAdded:Connect(apply)
-
+setupCharacter()
 end
 
--- HWID check
+-- HWID
 local ok=false
 pcall(function()
 if isfile and readfile and isfile("paokuy_hwid.txt") then
@@ -71,7 +93,7 @@ end)
 
 if ok then main() return end
 
--- UI (เบาลงแล้ว)
+-- UI
 local g=Instance.new("ScreenGui",p.PlayerGui)
 local f=Instance.new("Frame",g)
 f.Size=UDim2.new(0,240,0,130)
