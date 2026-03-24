@@ -75,7 +75,7 @@ local t=Instance.new("TextLabel",g2)
 t.Size=UDim2.new(0,300,0,40)
 t.Position=UDim2.new(.5,-150,.5,-20)
 t.BackgroundTransparency=1
-t.Text="by:เปารุ่นใหญ่"
+t.Text="by:เปารุ่นใหญ่PK"
 t.TextScaled=true
 t.TextColor3=Color3.new(1,1,1)
 task.delay(3,function()g2:Destroy()end)
@@ -129,6 +129,6 @@ pcall(function()if writefile then writefile("paokuy_hwid.txt",hwid)end end)
 g:Destroy()
 main()
 else
-w.Text="no key"
+w.Text="คีย์ผิดไอควาย"
 end
 end)
