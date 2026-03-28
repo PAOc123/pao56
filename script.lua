@@ -1,5 +1,5 @@
 local p=game.Players.LocalPlayer
-local key="PK"
+local key="pao56kub"
 
 -- HWID
 local hwid="unknown"
