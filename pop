@@ -1,0 +1,195 @@
+-- UI LIBRARY
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("PK", "DarkTheme")
+
+local Tabesp = Window:NewTab("ESP")
+local Sectionesp = Tabesp:NewSection("ESP Control")
+
+-- SERVICES
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+
+-- NOTIFY (ข้อความกลางจอ)
+StarterGui:SetCore("SendNotification", {
+    Title = "Loaded",
+    Text = "by: paohack56",
+    Duration = 5
+})
+
+-- CONFIG
+local ESP_ENABLED = true
+
+local ROLE_COLORS = {
+	Crewmate = Color3.fromRGB(0, 255, 0),
+	Imposter = Color3.fromRGB(255, 0, 0),
+	Neutral  = Color3.fromRGB(0, 170, 255),
+}
+
+local BODY_COLOR = Color3.fromRGB(170, 0, 255)
+
+local NEUTRAL_SUBROLES = {
+	Jester = true, Chimera = true, Exploder = true, Assassin = true,
+	Novisor = true, Witness = true, Werewolf = true, Valentine = true,
+	Bunny = true, Medusa = true, Zombie = true, Santa = true, Grinch = true,
+}
+
+local BodiesFolder = workspace:WaitForChild("Bodies")
+
+-- FUNCTIONS
+local function getTorso(character)
+	return character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
+end
+
+local function attachTag(player, character)
+	if not ESP_ENABLED then return end
+
+	local torso = getTorso(character)
+	if not torso then return end
+
+	local old = torso:FindFirstChild("RoleTag")
+	if old then old:Destroy() end
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "RoleTag"
+	billboard.Parent = torso
+	billboard.Adornee = torso
+	billboard.Size = UDim2.new(5, 0, 2, 0)
+	billboard.StudsOffset = Vector3.new(0, 2.6, 0)
+	billboard.AlwaysOnTop = true
+	billboard.MaxDistance = 450
+
+	local subText = Instance.new("TextLabel", billboard)
+	subText.BackgroundTransparency = 1
+	subText.Font = Enum.Font.GothamBold
+	subText.TextScaled = true
+	subText.Size = UDim2.new(1, 0, 0.35, 0)
+
+	local roleText = Instance.new("TextLabel", billboard)
+	roleText.BackgroundTransparency = 1
+	roleText.Font = Enum.Font.GothamBold
+	roleText.TextScaled = true
+	roleText.Size = UDim2.new(1, 0, 0.6, 0)
+	roleText.Position = UDim2.new(0, 0, 0.35, 0)
+
+	local function update()
+		local ps = player:FindFirstChild("PublicStates")
+		if not ps then return end
+
+		local roleVal = ps:FindFirstChild("Role")
+		local subRoleVal = ps:FindFirstChild("SubRole")
+
+		local roleName = roleVal and roleVal.Value or ""
+		local subRoleName = subRoleVal and subRoleVal.Value or ""
+
+		if subRoleName ~= "" and NEUTRAL_SUBROLES[subRoleName] then
+			roleText.Text = subRoleName
+			roleText.TextColor3 = ROLE_COLORS.Neutral
+			subText.Text = ""
+			return
+		end
+
+		roleText.Text = roleName
+		subText.Text = subRoleName
+
+		if roleName == "Imposter" then
+			roleText.TextColor3 = ROLE_COLORS.Imposter
+			subText.TextColor3 = ROLE_COLORS.Imposter
+		else
+			roleText.TextColor3 = ROLE_COLORS.Crewmate
+			subText.TextColor3 = ROLE_COLORS.Crewmate
+		end
+	end
+
+	local ps = player:WaitForChild("PublicStates", 5)
+	if ps then
+		for _, v in ipairs(ps:GetChildren()) do
+			if v:IsA("StringValue") then
+				v.Changed:Connect(update)
+			end
+		end
+	end
+
+	update()
+end
+
+local function setupPlayer(player)
+	player.CharacterAdded:Connect(function(character)
+		attachTag(player, character)
+	end)
+
+	if player.Character then
+		attachTag(player, player.Character)
+	end
+end
+
+-- BODY ESP
+local function getBodyAdornee(body)
+	if body:IsA("Model") then
+		return body:FindFirstChild("UpperTorso") or body.PrimaryPart
+	elseif body:IsA("BasePart") then
+		return body
+	end
+end
+
+local function attachBodyTag(body)
+	if not ESP_ENABLED then return end
+
+	local adornee = getBodyAdornee(body)
+	if not adornee then return end
+
+	if adornee:FindFirstChild("BodyTag") then return end
+
+	local billboard = Instance.new("BillboardGui", adornee)
+	billboard.Name = "BodyTag"
+	billboard.Size = UDim2.new(5, 0, 2, 0)
+	billboard.StudsOffset = Vector3.new(0, 2.6, 0)
+	billboard.AlwaysOnTop = true
+
+	local text = Instance.new("TextLabel", billboard)
+	text.BackgroundTransparency = 1
+	text.Font = Enum.Font.GothamBlack
+	text.TextScaled = true
+	text.Size = UDim2.new(1, 0, 1, 0)
+	text.Text = "BODY"
+	text.TextColor3 = BODY_COLOR
+end
+
+-- INIT
+for _, player in ipairs(Players:GetPlayers()) do
+	setupPlayer(player)
+end
+
+Players.PlayerAdded:Connect(setupPlayer)
+
+for _, body in ipairs(BodiesFolder:GetChildren()) do
+	if body.Name == "DeadBody" then
+		attachBodyTag(body)
+	end
+end
+
+BodiesFolder.ChildAdded:Connect(function(body)
+	if body.Name == "DeadBody" then
+		attachBodyTag(body)
+	end
+end)
+
+-- UI TOGGLE
+Sectionesp:NewToggle("Enable ESP", "เปิด/ปิด ESP", function(state)
+	ESP_ENABLED = state
+
+	if not state then
+		-- ลบ ESP ทั้งหมด
+		for _, v in ipairs(workspace:GetDescendants()) do
+			if v.Name == "RoleTag" or v.Name == "BodyTag" then
+				v:Destroy()
+			end
+		end
+	else
+		-- รีโหลดใหม่
+		for _, player in ipairs(Players:GetPlayers()) do
+			if player.Character then
+				attachTag(player, player.Character)
+			end
+		end
+	end
+end)
