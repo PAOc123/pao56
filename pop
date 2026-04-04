@@ -1,194 +1,191 @@
--- UI LIBRARY
+-- UI
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("PK", "DarkTheme")
+local Window = Library.CreateLib("PK HUB", "DarkTheme")
 
-local Tabesp = Window:NewTab("ESP")
-local Sectionesp = Tabesp:NewSection("ESP Control")
+-- TAB
+local TabMain = Window:NewTab("Main")
+local SectionMain = TabMain:NewSection("Main")
+
+local TabESP = Window:NewTab("ESP")
+local SectionESP = TabESP:NewSection("ESP")
 
 -- SERVICES
 local Players = game:GetService("Players")
-local StarterGui = game:GetService("StarterGui")
+local Lighting = game:GetService("Lighting")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
 
--- NOTIFY (ข้อความกลางจอ)
-StarterGui:SetCore("SendNotification", {
+-- NOTIFY
+game.StarterGui:SetCore("SendNotification", {
     Title = "Loaded",
     Text = "by: paohack56",
     Duration = 5
 })
 
 -- CONFIG
-local ESP_ENABLED = true
+local ESP_ENABLED = false
+local SHOW_DISTANCE = false
+local ESP_COLOR = Color3.fromRGB(0,255,0)
 
-local ROLE_COLORS = {
-	Crewmate = Color3.fromRGB(0, 255, 0),
-	Imposter = Color3.fromRGB(255, 0, 0),
-	Neutral  = Color3.fromRGB(0, 170, 255),
-}
-
-local BODY_COLOR = Color3.fromRGB(170, 0, 255)
-
-local NEUTRAL_SUBROLES = {
-	Jester = true, Chimera = true, Exploder = true, Assassin = true,
-	Novisor = true, Witness = true, Werewolf = true, Valentine = true,
-	Bunny = true, Medusa = true, Zombie = true, Santa = true, Grinch = true,
-}
-
-local BodiesFolder = workspace:WaitForChild("Bodies")
-
--- FUNCTIONS
-local function getTorso(character)
-	return character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
-end
-
-local function attachTag(player, character)
-	if not ESP_ENABLED then return end
-
-	local torso = getTorso(character)
-	if not torso then return end
-
-	local old = torso:FindFirstChild("RoleTag")
-	if old then old:Destroy() end
-
-	local billboard = Instance.new("BillboardGui")
-	billboard.Name = "RoleTag"
-	billboard.Parent = torso
-	billboard.Adornee = torso
-	billboard.Size = UDim2.new(5, 0, 2, 0)
-	billboard.StudsOffset = Vector3.new(0, 2.6, 0)
-	billboard.AlwaysOnTop = true
-	billboard.MaxDistance = 450
-
-	local subText = Instance.new("TextLabel", billboard)
-	subText.BackgroundTransparency = 1
-	subText.Font = Enum.Font.GothamBold
-	subText.TextScaled = true
-	subText.Size = UDim2.new(1, 0, 0.35, 0)
-
-	local roleText = Instance.new("TextLabel", billboard)
-	roleText.BackgroundTransparency = 1
-	roleText.Font = Enum.Font.GothamBold
-	roleText.TextScaled = true
-	roleText.Size = UDim2.new(1, 0, 0.6, 0)
-	roleText.Position = UDim2.new(0, 0, 0.35, 0)
-
-	local function update()
-		local ps = player:FindFirstChild("PublicStates")
-		if not ps then return end
-
-		local roleVal = ps:FindFirstChild("Role")
-		local subRoleVal = ps:FindFirstChild("SubRole")
-
-		local roleName = roleVal and roleVal.Value or ""
-		local subRoleName = subRoleVal and subRoleVal.Value or ""
-
-		if subRoleName ~= "" and NEUTRAL_SUBROLES[subRoleName] then
-			roleText.Text = subRoleName
-			roleText.TextColor3 = ROLE_COLORS.Neutral
-			subText.Text = ""
-			return
-		end
-
-		roleText.Text = roleName
-		subText.Text = subRoleName
-
-		if roleName == "Imposter" then
-			roleText.TextColor3 = ROLE_COLORS.Imposter
-			subText.TextColor3 = ROLE_COLORS.Imposter
-		else
-			roleText.TextColor3 = ROLE_COLORS.Crewmate
-			subText.TextColor3 = ROLE_COLORS.Crewmate
-		end
-	end
-
-	local ps = player:WaitForChild("PublicStates", 5)
-	if ps then
-		for _, v in ipairs(ps:GetChildren()) do
-			if v:IsA("StringValue") then
-				v.Changed:Connect(update)
-			end
-		end
-	end
-
-	update()
-end
-
-local function setupPlayer(player)
-	player.CharacterAdded:Connect(function(character)
-		attachTag(player, character)
-	end)
-
-	if player.Character then
-		attachTag(player, player.Character)
-	end
-end
-
--- BODY ESP
-local function getBodyAdornee(body)
-	if body:IsA("Model") then
-		return body:FindFirstChild("UpperTorso") or body.PrimaryPart
-	elseif body:IsA("BasePart") then
-		return body
-	end
-end
-
-local function attachBodyTag(body)
-	if not ESP_ENABLED then return end
-
-	local adornee = getBodyAdornee(body)
-	if not adornee then return end
-
-	if adornee:FindFirstChild("BodyTag") then return end
-
-	local billboard = Instance.new("BillboardGui", adornee)
-	billboard.Name = "BodyTag"
-	billboard.Size = UDim2.new(5, 0, 2, 0)
-	billboard.StudsOffset = Vector3.new(0, 2.6, 0)
-	billboard.AlwaysOnTop = true
-
-	local text = Instance.new("TextLabel", billboard)
-	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.GothamBlack
-	text.TextScaled = true
-	text.Size = UDim2.new(1, 0, 1, 0)
-	text.Text = "BODY"
-	text.TextColor3 = BODY_COLOR
-end
-
--- INIT
-for _, player in ipairs(Players:GetPlayers()) do
-	setupPlayer(player)
-end
-
-Players.PlayerAdded:Connect(setupPlayer)
-
-for _, body in ipairs(BodiesFolder:GetChildren()) do
-	if body.Name == "DeadBody" then
-		attachBodyTag(body)
-	end
-end
-
-BodiesFolder.ChildAdded:Connect(function(body)
-	if body.Name == "DeadBody" then
-		attachBodyTag(body)
+--------------------------------------------------
+-- UI TOGGLE (INSERT)
+--------------------------------------------------
+UserInputService.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.Insert then
+		game.CoreGui["PK HUB"].Enabled = not game.CoreGui["PK HUB"].Enabled
 	end
 end)
 
--- UI TOGGLE
-Sectionesp:NewToggle("Enable ESP", "เปิด/ปิด ESP", function(state)
-	ESP_ENABLED = state
+--------------------------------------------------
+-- ESP FUNCTION
+--------------------------------------------------
+local function createESP(player)
+	if not ESP_ENABLED then return end
+	if player == LocalPlayer then return end
 
-	if not state then
-		-- ลบ ESP ทั้งหมด
-		for _, v in ipairs(workspace:GetDescendants()) do
-			if v.Name == "RoleTag" or v.Name == "BodyTag" then
-				v:Destroy()
+	local char = player.Character
+	if not char then return end
+
+	local head = char:FindFirstChild("Head")
+	if not head then return end
+
+	if head:FindFirstChild("ESP") then return end
+
+	local bill = Instance.new("BillboardGui", head)
+	bill.Name = "ESP"
+	bill.Size = UDim2.new(4,0,1,0)
+	bill.AlwaysOnTop = true
+
+	local text = Instance.new("TextLabel", bill)
+	text.Size = UDim2.new(1,0,1,0)
+	text.BackgroundTransparency = 1
+	text.TextColor3 = ESP_COLOR
+	text.TextScaled = true
+	text.Font = Enum.Font.GothamBold
+
+	game:GetService("RunService").RenderStepped:Connect(function()
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			local dist = (LocalPlayer.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+			if SHOW_DISTANCE then
+				text.Text = player.Name.." ["..math.floor(dist).."]"
+			else
+				text.Text = player.Name
+			end
+			text.TextColor3 = ESP_COLOR
+		end
+	end)
+end
+
+--------------------------------------------------
+-- BODY ESP
+--------------------------------------------------
+local function bodyESP(body)
+	if not ESP_ENABLED then return end
+
+	local part = body:FindFirstChild("Torso") or body:FindFirstChild("UpperTorso") or body.PrimaryPart
+	if not part then return end
+
+	if part:FindFirstChild("BODYESP") then return end
+
+	local bill = Instance.new("BillboardGui", part)
+	bill.Name = "BODYESP"
+	bill.Size = UDim2.new(4,0,1,0)
+	bill.AlwaysOnTop = true
+
+	local text = Instance.new("TextLabel", bill)
+	text.Size = UDim2.new(1,0,1,0)
+	text.BackgroundTransparency = 1
+	text.Text = "BODY"
+	text.TextColor3 = Color3.fromRGB(255,0,255)
+	text.TextScaled = true
+end
+
+--------------------------------------------------
+-- REFRESH ESP
+--------------------------------------------------
+local function refreshESP()
+	for _,v in pairs(workspace:GetDescendants()) do
+		if v.Name == "ESP" or v.Name == "BODYESP" then
+			v:Destroy()
+		end
+	end
+
+	if ESP_ENABLED then
+		for _,p in pairs(Players:GetPlayers()) do
+			createESP(p)
+		end
+
+		for _,b in pairs(workspace:GetDescendants()) do
+			if b.Name == "DeadBody" then
+				bodyESP(b)
 			end
 		end
+	end
+end
+
+Players.PlayerAdded:Connect(function(p)
+	p.CharacterAdded:Connect(function()
+		wait(1)
+		createESP(p)
+	end)
+end)
+
+--------------------------------------------------
+-- ESP UI
+--------------------------------------------------
+SectionESP:NewToggle("ESP", "เปิด/ปิด ESP", function(v)
+	ESP_ENABLED = v
+	refreshESP()
+end)
+
+SectionESP:NewToggle("Show Distance", "แสดงระยะ", function(v)
+	SHOW_DISTANCE = v
+end)
+
+SectionESP:NewButton("Change Color", "สุ่มสี ESP", function()
+	ESP_COLOR = Color3.fromRGB(math.random(0,255),math.random(0,255),math.random(0,255))
+end)
+
+--------------------------------------------------
+-- FULLBRIGHT
+--------------------------------------------------
+local FULLBRIGHT = false
+
+SectionMain:NewToggle("FullBright", "แมพสว่าง", function(v)
+	FULLBRIGHT = v
+	if v then
+		Lighting.Brightness = 2
+		Lighting.ClockTime = 12
+		Lighting.FogEnd = 999999
+		Lighting.GlobalShadows = false
 	else
-		-- รีโหลดใหม่
-		for _, player in ipairs(Players:GetPlayers()) do
-			if player.Character then
-				attachTag(player, player.Character)
+		Lighting.Brightness = 1
+	end
+end)
+
+--------------------------------------------------
+-- SPEED
+--------------------------------------------------
+SectionMain:NewSlider("Speed", "ความเร็ว", 200, 16, function(v)
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+		LocalPlayer.Character.Humanoid.WalkSpeed = v
+	end
+end)
+
+--------------------------------------------------
+-- NOCLIP
+--------------------------------------------------
+local noclip = false
+
+SectionMain:NewToggle("Noclip", "ทะลุกำแพง", function(v)
+	noclip = v
+end)
+
+game:GetService("RunService").Stepped:Connect(function()
+	if noclip and LocalPlayer.Character then
+		for _,v in pairs(LocalPlayer.Character:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.CanCollide = false
 			end
 		end
 	end
